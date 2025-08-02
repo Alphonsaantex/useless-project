@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mood-Based Soap Dispenser</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: background 0.5s ease;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .mood-selector {
+            margin-bottom: 40px;
+        }
+
+        .mood-selector h2 {
+            color: #555;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .mood-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .mood-btn {
+            padding: 15px 10px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f0f0f0;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .mood-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .mood-btn.active {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .mood-btn.happy { background: linear-gradient(45deg, #FFD700, #FFA500); }
+        .mood-btn.calm { background: linear-gradient(45deg, #87CEEB, #4682B4); }
+        .mood-btn.energetic { background: linear-gradient(45deg, #FF6347, #FF4500); }
+        .mood-btn.relaxed { background: linear-gradient(45deg, #98FB98, #32CD32); }
+        .mood-btn.focused { background: linear-gradient(45deg, #DDA0DD, #9370DB); }
+
+        .dispenser-container {
+            position: relative;
+            margin: 40px auto;
+            width: 200px;
+            height: 300px;
+        }
+
+        .dispenser {
+            width: 150px;
+            height: 250px;
+            background: linear-gradient(145deg, #e6e6e6, #ffffff);
+            border-radius: 20px 20px 10px 10px;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.5s ease;
+        }
+
+        .dispenser-top {
+            width: 100px;
+            height: 60px;
+            background: #333;
+            border-radius: 10px;
+            margin: 0 auto;
+            position: relative;
+            top: -10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sensor {
+            width: 30px;
+            height: 30px;
+            background: #ff4444;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .soap-window {
+            width: 80px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #ddd;
+        }
+
+        .soap-level {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: #87CEEB;
+            transition: all 0.5s ease;
+            border-radius: 0 0 8px 8px;
+            height: 80%;
+        }
+
+        .dispenser-nozzle {
+            width: 40px;
+            height: 20px;
+            background: #666;
+            border-radius: 0 0 10px 10px;
+            margin: 0 auto;
+            position: relative;
+            top: 10px;
+        }
+
+        .soap-drop {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            top: 280px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            animation: drop 1s ease-in;
+        }
+
+        @keyframes drop {
+            0% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(50px);
+            }
+        }
+
+        .dispense-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 0;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .dispense-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .dispense-btn:active {
+            transform: translateY(0);
+        }
+
+        .mood-info {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .mood-info h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .mood-info p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Mood-specific backgrounds */
+        body.happy { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); }
+        body.calm { background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%); }
+        body.energetic { background: linear-gradient(135deg, #FF6347 0%, #FF4500 100%); }
+        body.relaxed { background: linear-gradient(135deg, #98FB98 0%, #32CD32 100%); }
+        body.focused { background: linear-gradient(135deg, #DDA0DD 0%, #9370DB 100%); }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .mood-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .dispenser-container {
+                width: 150px;
+                height: 250px;
+            }
+            
+            .dispenser {
+                width: 120px;
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧼 Mood Soap Dispenser</h1>
+        
+        <div class="mood-selector">
+            <h2>How are you feeling today?</h2>
+            <div class="mood-buttons">
+                <button class="mood-btn happy" data-mood="happy">😊 Happy</button>
+                <button class="mood-btn calm" data-mood="calm">😌 Calm</button>
+                <button class="mood-btn energetic" data-mood="energetic">⚡ Energetic</button>
+                <button class="mood-btn relaxed" data-mood="relaxed">🧘 Relaxed</button>
+                <button class="mood-btn focused" data-mood="focused">🎯 Focused</button>
+            </div>
+        </div>
+
+        <div class="dispenser-container">
+            <div class="dispenser">
+                <div class="dispenser-top">
+                    <div class="sensor"></div>
+                </div>
+                <div class="soap-window">
+                    <div class="soap-level" id="soapLevel"></div>
+                </div>
+                <div class="dispenser-nozzle"></div>
+            </div>
+        </div>
+
+        <button class="dispense-btn" id="dispenseBtn" onclick="dispenseSoap()">
+            Dispense Soap
+        </button>
+
+        <div class="mood-info" id="moodInfo">
+            <h3>Select your mood to get started!</h3>
+            <p>Choose how you're feeling and I'll dispense the perfect soap for your mood.</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="dispenseCount">0</div>
+                <div class="stat-label">Times Dispensed</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="soapRemaining">100</div>
+                <div class="stat-label">Soap Remaining (%)</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMood = null;
+        let dispenseCount = 0;
+        let soapRemaining = 100;
+
+        const moodData = {
+            happy: {
+                color: '#FFD700',
+                soapType: 'Citrus Burst',
+                description: 'Bright and uplifting citrus soap to match your sunny disposition!',
+                scent: 'Orange & Lemon',
+                benefits: 'Energizing and mood-boosting'
+            },
+            calm: {
+                color: '#87CEEB',
+                soapType: 'Ocean Breeze',
+                description: 'Gentle, soothing soap with calming ocean minerals.',
+                scent: 'Sea Salt & Lavender',
+                benefits: 'Relaxing and stress-relieving'
+            },
+            energetic: {
+                color: '#FF6347',
+                soapType: 'Power Boost',
+                description: 'Invigorating soap with energizing essential oils!',
+                scent: 'Peppermint & Eucalyptus',
+                benefits: 'Stimulating and revitalizing'
+            },
+            relaxed: {
+                color: '#98FB98',
+                soapType: 'Zen Garden',
+                description: 'Peaceful, natural soap with herbal extracts.',
+                scent: 'Chamomile & Green Tea',
+                benefits: 'Soothing and balancing'
+            },
+            focused: {
+                color: '#DDA0DD',
+                soapType: 'Mind Sharp',
+                description: 'Clarity-enhancing soap to keep you sharp and focused.',
+                scent: 'Rosemary & Sage',
+                benefits: 'Concentration-boosting'
+            }
+        };
+
+        // Mood selection
+        document.querySelectorAll('.mood-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active class from all buttons
+                document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+                
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                // Set current mood
+                currentMood = this.dataset.mood;
+                
+                // Update body class for background
+                document.body.className = currentMood;
+                
+                // Update soap appearance
+                updateSoapAppearance();
+                
+                // Update mood info
+                updateMoodInfo();
+            });
+        });
+
+        function updateSoapAppearance() {
+            if (!currentMood) return;
+            
+            const soapLevel = document.getElementById('soapLevel');
+            const mood = moodData[currentMood];
+            
+            soapLevel.style.background = `linear-gradient(180deg, ${mood.color}, ${mood.color}dd)`;
+            soapLevel.style.height = `${soapRemaining}%`;
+        }
+
+        function updateMoodInfo() {
+            if (!currentMood) return;
+            
+            const moodInfo = document.getElementById('moodInfo');
+            const mood = moodData[currentMood];
+            
+            moodInfo.innerHTML = `
+                <h3>${mood.soapType} Soap Selected</h3>
+                <p><strong>Scent:</strong> ${mood.scent}</p>
+                <p><strong>Benefits:</strong> ${mood.benefits}</p>
+                <p>${mood.description}</p>
+            `;
+        }
+
+        function dispenseSoap() {
+            if (!currentMood) {
+                alert('Please select your mood first!');
+                return;
+            }
+
+            if (soapRemaining <= 0) {
+                alert('Soap dispenser is empty! Please refill.');
+                return;
+            }
+
+            // Create soap drop animation
+            createSoapDrop();
+            
+            // Update counters
+            dispenseCount++;
+            soapRemaining = Math.max(0, soapRemaining - 2);
+            
+            // Update display
+            document.getElementById('dispenseCount').textContent = dispenseCount;
+            document.getElementById('soapRemaining').textContent = soapRemaining;
+            
+            // Update soap level
+            updateSoapAppearance();
+            
+            // Add dispensing effect
+            const dispenser = document.querySelector('.dispenser');
+            dispenser.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                dispenser.style.transform = 'scale(1)';
+            }, 200);
+
+            // Show success message
+            showDispenseMessage();
+        }
+
+        function createSoapDrop() {
+            const drop = document.createElement('div');
+            drop.className = 'soap-drop';
+            drop.style.background = moodData[currentMood].color;
+            
+            document.querySelector('.dispenser-container').appendChild(drop);
+            
+            // Remove drop after animation
+            setTimeout(() => {
+                drop.remove();
+            }, 1000);
+        }
+
+        function showDispenseMessage() {
+            const mood = moodData[currentMood];
+            const message = document.createElement('div');
+            message.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${mood.color};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                font-weight: bold;
+                z-index: 1000;
+                animation: slideIn 0.5s ease;
+            `;
+            message.textContent = `✨ ${mood.soapType} dispensed! Enjoy your wash!`;
+            
+            document.body.appendChild(message);
+            
+            setTimeout(() => {
+                message.remove();
+            }, 3000);
+        }
+
+        // Add slide-in animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Auto-refill when empty (for demo purposes)
+        setInterval(() => {
+            if (soapRemaining === 0) {
+                setTimeout(() => {
+                    soapRemaining = 100;
+                    document.getElementById('soapRemaining').textContent = soapRemaining;
+                    updateSoapAppearance();
+                    
+                    const refillMessage = document.createElement('div');
+                    refillMessage.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        background: #4CAF50;
+                        color: white;
+                        padding: 15px 20px;
+                        border-radius: 10px;
+                        font-weight: bold;
+                        z-index: 1000;
+                    `;
+                    refillMessage.textContent = '🔄 Soap dispenser automatically refilled!';
+                    
+                    document.body.appendChild(refillMessage);
+                    
+                    setTimeout(() => {
+                        refillMessage.remove();
+                    }, 3000);
+                }, 2000);
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
