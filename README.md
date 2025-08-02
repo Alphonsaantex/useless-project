@@ -29,6 +29,8 @@ For Software:
 -html , css , java script
 -chatgpt , vercalv0
 
+# project link: https://useless-project-snowy.vercel.app/
+
 
 # Screenshots (Add at least 3)
 
